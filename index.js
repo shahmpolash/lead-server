@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://ecommerce2:ecommerce2@cluster0.bjmg9tv.mongodb.net/ecommerce2?retryWrites=true&w=majority`;
+const uri = process.env.MONGO_URI;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
