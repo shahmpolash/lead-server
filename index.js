@@ -20,16 +20,23 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    
+
     const leadCollections = client.db("leadGeneration").collection("lead");
-    const categoryCollections = client.db("leadGeneration").collection("category");
-    const profileCollections = client.db("leadGeneration").collection("profile");
-    const leadtakenCollections = client.db("leadGeneration").collection("leadtaken");
-    const buycreditCollections = client.db("leadGeneration").collection("buycredit");
-    const listnameCollections = client.db("leadGeneration").collection("listname");
-
-
-    
+    const categoryCollections = client
+      .db("leadGeneration")
+      .collection("category");
+    const profileCollections = client
+      .db("leadGeneration")
+      .collection("profile");
+    const leadtakenCollections = client
+      .db("leadGeneration")
+      .collection("leadtaken");
+    const buycreditCollections = client
+      .db("leadGeneration")
+      .collection("buycredit");
+    const listnameCollections = client
+      .db("leadGeneration")
+      .collection("listname");
 
     app.post("/add-lead", async (req, res) => {
       const lead = req.body;
@@ -78,8 +85,6 @@ async function run() {
       );
       res.send(result);
     });
-    
-
 
     /***
      * List Name
@@ -131,8 +136,7 @@ async function run() {
       );
       res.send(result);
     });
-    
-    
+
     /***
      * Credit Setup
      * **/
@@ -184,7 +188,6 @@ async function run() {
       res.send(result);
     });
 
-    
     /***
      * Lead Taken
      * **/
@@ -201,13 +204,13 @@ async function run() {
       const leads = await cursor.toArray();
       res.send(leads);
 
-      app.get('/taken', async (req, res) => {
+      app.get("/taken", async (req, res) => {
         const email = req.query.leadTakenBy;
         const query = { leadTakenBy: email };
         const cursor = leadCollections.find(query);
         const leadTaken = await cursor.toArray();
         res.send(leadTaken);
-    });
+      });
     });
 
     /***
@@ -274,48 +277,44 @@ async function run() {
       res.send(profiles);
     });
 
-    app.get('/profile', async (req, res) => {
+    app.get("/profile", async (req, res) => {
       const email = req.query.customerEmail;
       const query = { customerEmail: email };
       const cursor = profileCollections.find(query);
       const clientprofile = await cursor.toArray();
       res.send(clientprofile);
-  });
+    });
 
-  app.get("/profile/:id", async (req, res) => {
-    try {
+    app.get("/profile/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const profile = await profileCollections.findOne(query);
+        res.send(profile);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send("Server Error");
+      }
+    });
+
+    app.put("/profile/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const profile = await profileCollections.findOne(query);
-      res.send(profile);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Server Error");
-    }
-  });
+      const updateCredit = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          credit: updateCredit.credit,
+        },
+      };
 
-  app.put("/profile/:id", async (req, res) => {
-    const id = req.params.id;
-    const updateCredit = req.body;
-    const filter = { _id: new ObjectId(id) };
-    const options = { upsert: true };
-    const updatedDoc = {
-      $set: {
-        credit: updateCredit.credit,
-        
-      },
-    };
-
-    const result = await profileCollections.updateOne(
-      filter,
-      updatedDoc,
-      options
-    );
-    res.send(result);
-  });
-
- 
-   
+      const result = await profileCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
   } finally {
   }
 }
