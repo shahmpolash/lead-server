@@ -90,7 +90,7 @@ async function run() {
      * List Name
      * **/
 
-    app.post("/add-list", async (req, res) => {
+    app.post("/create-list", async (req, res) => {
       const list = req.body;
       const result = await listnameCollections.insertOne(list);
       res.send(result);
