@@ -37,6 +37,12 @@ async function run() {
     const listnameCollections = client
       .db("leadGeneration")
       .collection("listname");
+    const employeeCollections = client
+      .db("leadGeneration")
+      .collection("employees");
+    const leadCollectedCollections = client
+      .db("leadGeneration")
+      .collection("leadCollection");
 
     app.post("/add-lead", async (req, res) => {
       const lead = req.body;
@@ -86,6 +92,56 @@ async function run() {
       res.send(result);
     });
 
+    /***
+     * Lead Collection
+     * **/
+    app.post("/leads-collected", async (req, res) => {
+      const lead = req.body;
+      const result = await leadCollectedCollections.insertOne(lead);
+      res.send(result);
+    });
+
+    app.get("/leads-collections", async (req, res) => {
+      const query = {};
+      const cursor = leadCollectedCollections.find(query);
+      const leads = await cursor.toArray();
+      res.send(leads);
+    });
+
+    app.get("/leads-collections/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const lead = await leadCollectedCollections.findOne(query);
+        res.send(lead);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send("Server Error");
+      }
+    });
+
+    app.put("/lead/:id", async (req, res) => {
+      const id = req.params.id;
+      const leadTaken = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          leadStatus: leadTaken.leadStatus,
+          clientId: leadTaken.clientId,
+          leadTakenBy: leadTaken.leadTakenBy,
+          availableCredit: leadTaken.availableCredit,
+          listName: leadTaken.listName,
+        },
+      };
+
+      const result = await leadCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
     /***
      * List Name
      * **/
@@ -258,6 +314,22 @@ async function run() {
         options
       );
       res.send(result);
+    });
+
+    /**
+     * Employee
+     * ***/
+    app.post("/add-employee", async (req, res) => {
+      const employee = req.body;
+      const result = await employeeCollections.insertOne(employee);
+      res.send(result);
+    });
+
+    app.get("/employees", async (req, res) => {
+      const query = {};
+      const cursor = employeeCollections.find(query);
+      const employees = await cursor.toArray();
+      res.send(employees);
     });
 
     /**
